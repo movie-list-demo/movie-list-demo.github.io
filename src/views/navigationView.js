@@ -1,6 +1,7 @@
 // import { html } from "../../node_modules/lit-html/lit-html.js";
 import { html } from 'https://unpkg.com/lit-html?module';
 import * as authService from "../services/authService.js";
+import * as moviesService from "../services/moviesService.js";
 
 const showUserInfoTemplate = (email) => html`
 <span id="welcome-span">Welcome, ${email}</span>
@@ -17,7 +18,7 @@ const userButton = (onLogout) => html`
 <a class="nav-link" @click=${onLogout} href="#">Logout</a>
 `;
 
-const navigationTemplate = (isAuthenticated, email, onLogout) => html`
+const navigationTemplate = (isAuthenticated, email, onLogout, onSearch) => html`
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">MovieDB</a>
@@ -29,6 +30,10 @@ const navigationTemplate = (isAuthenticated, email, onLogout) => html`
                     ? userButton(onLogout) 
                     : guestButtons()}
             </div>
+                <form class="d-flex" @submit=${onSearch}>
+                <input class="form-control me-2" type="search" name="search-text" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
         </div>
         ${isAuthenticated && showUserInfoTemplate(email)}
     </div>
@@ -42,5 +47,12 @@ export function renderNavigation(ctx) {
             .then(() => ctx.page.redirect('/'));
     }
 
-    return navigationTemplate(ctx.isAuthenticated, ctx.email, onLogout);
+    const onSearch = (e) => {
+        e.preventDefault();
+        let formData = new FormData(e.currentTarget);
+
+        ctx.page.redirect(`/movies?search=${formData.get('search-text')}`);
+    }
+
+    return navigationTemplate(ctx.isAuthenticated, ctx.email, onLogout, onSearch);
 }
